@@ -27,18 +27,7 @@ ssh-keygen
 ssh-copy-id Anton@myvps
 ```
 
-### Create the ssh tunnel script
-
-Add a script in */usr/local/bin/onbootnamecoinrpc.sh*
-
-```bash
-#!/bin/bash
-autossh -N -f -M 10000 -L 8336:127.0.0.1:8336 -i /home/Anton/.ssh/id_rsa -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes -o StrictHostKeyChecking=no Anton@myvps -p 22 &
-```
-
-Change the file mode bits to **555** ```sudo chmod 555 /usr/local/bin/onbootnamecoinrpc.sh```
-
-### Create a systemd bootscript
+### Create a systemd bootscript to start the ssh tunnel
 
 This is needed to auto start the ssh tunnel on reboot.
 A starting routine for systemd in */etc/systemd/system/sshtunnel.service* 
@@ -49,10 +38,8 @@ Description=SSH tunnel for namecoin rpc connection
 After=network.target
 
 [Service]
-Type=oneshot
-User=Anton
-ExecStart=/usr/local/bin/onbootnamecoinrpc.sh
-RemainAfterExit=yes
+Environment="AUTOSSH_GATETIME=0"
+ExecStart=/usr/bin/autossh -M 0 -o "ServerAliveInterval 30" -o "ServerAliveCountMax 3" -o "ExitOnForwardFailure=yes" -o "StrictHostKeyChecking=no" -NL 8336:127.0.0.1:8336 -i /home/Anton/.ssh/id_rsa Anton@myvps -p 22
 
 [Install]
 WantedBy=multi-user.target
