@@ -2,6 +2,15 @@
 
 To get access to the namecoin blockchain from everywhere i use a virtual private server (vps). This way i have access to my domains from every computer by setting up **ncdns** to connect via ssh. To my opinion, ssh is better hardened than rpc. So the only open port needed is the sshd port 22 on the vps.
 
+```vim
+|---------------------|                    |------------------|
+|        myvps        |     ssh tunnel     |      My PC       |
+|  running namecoind  | <================> |  running ncdns   |
+|---------------------|                    |------------------|
+
+```
+
+
 ## Setting up the ncdns
 
 **/etc/ncdns/ncdns.conf:**
