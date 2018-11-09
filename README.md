@@ -2,12 +2,12 @@
 
 To get access to the namecoin blockchain from everywhere i use a virtual private server (vps). This way i have access to my domains from every computer by setting up **ncdns** to connect via ssh. To my opinion, ssh is better hardened than rpc. So the only open port needed is the sshd port 22 on the vps.
 
-```vim
-|---------------------|                    |------------------|
-|        myvps        |     ssh tunnel     |      My PC       |
-|  running namecoind  | <================> |  running ncdns   |
-|---------------------|                    |------------------|
-
+```bash
++---------------------+                          +------------------+
+|        myvps        | <======================> |      My PC       |
+|                     |   (rpc)ssh tunnel(rpc)   |                  |
+|  running namecoind  | <======================> |  running ncdns   |
++---------------------+                          +------------------+
 ```
 
 
@@ -21,6 +21,46 @@ namecoinrpcusername="Anton"
 namecoinrpcpassword="mypassword"
 ```
 The namecoin address is pointing to localhost instead of the ip address of the vps.
+
+### Create a systemd bootscript to start the ncdns
+
+A starting routine for systemd in */etc/systemd/system/ncdns.service* 
+
+```bash
+[Unit]
+Description=ncdns namecoin domain name service *.bit toplevel domain.
+ConditionPathExists=/home/Anton/go/bin
+After=network.target
+
+[Service]
+Type=simple
+User=Anton
+Group=Anton
+WorkingDirectory=/home/Anton/go/bin
+ExecStart=/home/Anton/go/bin/ncdns
+
+# prepare for syslog
+PermissionsStartOnly=true
+ExecStartPre=/bin/mkdir -p /var/log/ncdns
+ExecStartPre=/bin/chown syslog:adm /var/log/ncdns
+ExecStartPre=/bin/chmod 755 /var/log/ncdns
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=ncdns
+
+[Install]
+WantedBy=multi-user.target
+```
+Change the file mode bits to **644** ```sudo chmod 644 /etc/systemd/system/ncdns.service```
+
+### Enable on systemd
+
+```bash
+systemctl daemon-reload
+systemctl enable ncdns.service
+systemctl start ncdns.service
+systemctl status ncdns.service
+```
 
 ## Setting up the ssh tunnel
 
